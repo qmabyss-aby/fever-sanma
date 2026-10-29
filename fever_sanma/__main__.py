@@ -112,7 +112,7 @@ def main(argv: list[str] | None = None) -> int:
 def simulate(count: int, rng: random.Random, kinds: list[str]) -> int:
     """全CPUでまわして、破綻していないことを確かめる。"""
     endings: Counter[str] = Counter()
-    kinds: Counter[str] = Counter()
+    outcomes: Counter[str] = Counter()
     yaku_seen: Counter[str] = Counter()
     fever_rounds = 0
     fever_wins = 0
@@ -127,7 +127,7 @@ def simulate(count: int, rng: random.Random, kinds: list[str]) -> int:
         _check_invariants(result, index)
         for round_result in result.rounds:
             total_rounds += 1
-            kinds[round_result.kind] += 1
+            outcomes[round_result.kind] += 1
             if round_result.kind == "draw":
                 draws += 1
                 tenpai_players += len(round_result.tenpai)
@@ -141,7 +141,7 @@ def simulate(count: int, rng: random.Random, kinds: list[str]) -> int:
 
     print(f"{count}半荘 / {total_rounds}局 完走")
     print(f"  終局理由: {dict(endings)}")
-    print(f"  局の結果: {dict(kinds)}")
+    print(f"  局の結果: {dict(outcomes)}")
     if draws:
         print(f"  流局時の平均テンパイ人数: {tenpai_players / draws:.2f} / 3人")
     print(f"  フィーバー和了が出た局: {fever_rounds}（和了 {fever_wins}回）")

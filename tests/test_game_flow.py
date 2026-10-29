@@ -402,3 +402,50 @@ class TestWinningHandIsRecorded:
                 assert win.hand.win_tile == win.win_tile
             assert "手牌:" in cui.render_round_result(result)
         assert seen["tsumo"] and seen["ron"], seen
+
+
+class TestCallOnKita:
+    """他家が抜いた北はポン・カンできる（CLAUDE.md §4.3）。鳴いたら抜きドラから外れて副露になる。"""
+
+    def _round(self):
+        from fever_sanma.core.hand import Hand
+
+        game = Round(dealer=0, rng=random.Random(0))  # 配牌直後は親の打牌番
+        game.players[0].hand = Hand.from_counts(t.counts_of("123p 456p 789p 23s 55s 4z"))
+        game.players[0].drawn_tile = t.PEI
+        game.players[1].hand = Hand.from_counts(t.counts_of("19m 2468p 1357s 444z"))
+        game.players[2].hand = Hand.from_counts(t.counts_of("19m 2468p 1357s 123z"))
+        game.apply(Action(ActionType.KITA, t.PEI))
+        return game
+
+    def _call(self, game, kind):
+        decision = game.decision()
+        assert decision.seat == 1
+        call = next(a for a in decision.actions if a.type is kind)
+        game.apply(call)
+        while (decision := game.decision()) is not None and decision.seat != 1:
+            game.apply(next(a for a in decision.actions if a.type is ActionType.PASS))
+        return game
+
+    def test_pon_takes_the_kita(self):
+        game = self._call(self._round(), ActionType.PON)
+        assert game.players[0].hand.kita == 0
+        caller = game.players[1].hand
+        assert caller.concealed[t.PEI] == 1
+        assert [(m.type.name, m.tile) for m in caller.melds] == [("PON", t.PEI)]
+        assert game.turn == 1 and game.phase is Phase.DISCARD
+
+    def test_minkan_takes_the_kita(self):
+        game = self._call(self._round(), ActionType.MINKAN)
+        assert game.players[0].hand.kita == 0
+        caller = game.players[1].hand
+        assert caller.concealed[t.PEI] == 0
+        assert [(m.type.name, m.tile) for m in caller.melds] == [("MINKAN", t.PEI)]
+        assert game.turn == 1
+
+    def test_pass_lets_the_kita_player_draw(self):
+        game = self._round()
+        while (decision := game.decision()) is not None and decision.phase is Phase.REACTION:
+            game.apply(next(a for a in decision.actions if a.type is ActionType.PASS))
+        assert game.players[0].hand.kita == 1
+        assert game.turn == 0

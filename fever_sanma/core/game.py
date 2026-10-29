@@ -665,10 +665,6 @@ class Round:
             self._draw_rinshan(seat)
             return
 
-        if self._reaction_kita:
-            self._after_kita_not_called()
-            return
-
         calls = [
             (seat, act)
             for seat, act in self._reactions.items()
@@ -678,6 +674,11 @@ class Round:
             priority = {ActionType.MINKAN: 0, ActionType.PON: 0, ActionType.CHI: 1}
             seat, action = min(calls, key=lambda pair: priority[pair[1].type])
             self._do_call(seat, action)
+            return
+
+        # 北抜きはポン・カンの確認を済ませてから、鳴かれなかった場合だけ嶺上牌をツモる
+        if self._reaction_kita:
+            self._after_kita_not_called()
             return
 
         if self._pending_fever is not None:
