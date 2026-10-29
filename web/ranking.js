@@ -20,8 +20,10 @@ window.Ranking = (() => {
         ...(options.headers || {}),
       },
     });
-    if (!response.ok) throw new Error(`${response.status} ${await response.text()}`);
-    return response.status === 204 ? null : response.json();
+    const text = await response.text();
+    if (!response.ok) throw new Error(`${response.status} ${text}`);
+    // 登録（return=minimal）は 201 で本文が空。空なら JSON として読まない
+    return text ? JSON.parse(text) : null;
   }
 
   function savedName() {
