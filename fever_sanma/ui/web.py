@@ -49,7 +49,6 @@ BUTTON_ORDER = (
     ActionType.ANKAN,
     ActionType.KAKAN,
     ActionType.KITA,
-    ActionType.KYUUSHU,
     ActionType.PASS,
 )
 
@@ -251,10 +250,15 @@ class WebSession:
         for command in hidden.COMMANDS:
             if self._typed.endswith(command):
                 self._typed = ""
-                if self.match.request_hidden(self.human, command):
-                    self.log(f"（隠しコマンド: 次の配牌で{hidden.DESCRIPTIONS[command]}）")
-                    return command
+                return self.hidden_command(command)
         return None
+
+    def hidden_command(self, command: str) -> str | None:
+        """隠しコマンドを有効にする。スマホではキーを打てないので、画面の連続タップからも呼ぶ。"""
+        if not self.match.request_hidden(self.human, command):
+            return None
+        self.log(f"（隠しコマンド: 次の配牌で{hidden.DESCRIPTIONS[command]}）")
+        return command
 
     def _toggle_riichi(self, kind: ActionType) -> None:
         self.riichi_mode = None if self.riichi_mode is kind else kind

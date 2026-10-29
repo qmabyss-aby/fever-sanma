@@ -32,7 +32,6 @@ from ..core.tiles import (
     NUM_KINDS,
     PEI,
     PERMANENT_DORA,
-    TERMINALS_AND_HONORS,
     dora_from_indicator,
     is_honor,
     number_of,
@@ -53,9 +52,6 @@ MIN_RIICHI_REMAINING = 4
 
 FAR_SHANTEN = 3
 """門前でこれ以上遠ければ、最初の鳴きを入れて脊髄を狙う。"""
-
-KOKUSHI_KINDS = 11
-"""么九牌がこれ以上あれば九種九牌で流さず国士無双を狙う。"""
 
 NEVER = 10_000
 """オープン立直者の待ち牌など、絶対に切らない牌の危険度。"""
@@ -88,12 +84,6 @@ class StrongAgent:
         player = game.players[seat]
         visible = visible_counts(game, seat)
         threats = self._threats(game, seat)
-
-        kyuushu = _first(options, ActionType.KYUUSHU)
-        if kyuushu is not None:
-            kinds = sum(1 for t in TERMINALS_AND_HONORS if player.hand.concealed[t])
-            if kinds < KOKUSHI_KINDS:
-                return kyuushu
 
         discards = [a for a in options if a.type is ActionType.DISCARD]
         scored = {a.tile: self._discard_score(game, seat, a.tile, visible) for a in discards}

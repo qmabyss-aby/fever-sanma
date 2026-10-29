@@ -32,6 +32,9 @@ async function boot() {
   $("table").hidden = false;
   $("new-match").addEventListener("click", newMatch);
   document.addEventListener("keydown", onKey);
+  // スマホはキーを打てないので、隠しコマンドは連続タップでも入れられる
+  onTaps($("title"), "fever");
+  onTaps($("log"), "benz");
   $("update").addEventListener("click", () => location.reload());
   if (window.Ranking && Ranking.enabled()) {
     $("show-ranking").hidden = false;
@@ -85,6 +88,22 @@ function run() {
 function afterInput() {
   refresh();
   schedule(0);
+}
+
+const TAPS_NEEDED = 5;
+const TAP_GAP_MS = 800; // これより間が空いたら数え直す
+
+function onTaps(element, command) {
+  let count = 0;
+  let last = 0;
+  element.addEventListener("click", () => {
+    const now = Date.now();
+    count = now - last > TAP_GAP_MS ? 1 : count + 1;
+    last = now;
+    if (count < TAPS_NEEDED || !session) return;
+    count = 0;
+    if (session.hidden_command(command)) refresh();
+  });
 }
 
 function onKey(event) {

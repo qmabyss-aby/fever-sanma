@@ -28,7 +28,6 @@ from .tiles import (
     NUM_KINDS,
     PEI,
     SHA,
-    TERMINALS_AND_HONORS,
     TON,
     NAN,
     can_form_run,
@@ -40,7 +39,6 @@ from .yaku import HandValue, WinContext, evaluate
 
 SEAT_WINDS = (TON, NAN, SHA)
 RIICHI_COST = 1000
-KYUUSHU_KINDS = 9
 MAX_KANS = 4
 
 
@@ -66,7 +64,6 @@ class ActionType(StrEnum):
     KAKAN = auto()  # 加槓
     ANKAN = auto()  # 暗槓
     KITA = auto()  # 北抜き
-    KYUUSHU = auto()  # 九種九牌
     PASS = auto()
 
 
@@ -272,7 +269,6 @@ class Round:
 
     def legal_actions(self, seat: int) -> list[Action]:
         """手番の席が選べる手。"""
-        player = self.players[seat]
         actions: list[Action] = []
 
         if self.phase is Phase.FEVER:
@@ -281,8 +277,6 @@ class Round:
         if self.phase is Phase.DRAW:
             if self._can_tsumo(seat):
                 actions.append(Action(ActionType.TSUMO))
-            if self.first_go_around and not self.any_call_made and self._is_kyuushu(player):
-                actions.append(Action(ActionType.KYUUSHU))
             actions.extend(self._kan_actions(seat))
             if self._can_draw_kita(seat):
                 actions.append(Action(ActionType.KITA, PEI))
@@ -403,10 +397,6 @@ class Round:
         probe.melds = [*probe.melds, Meld(MeldType.ANKAN, tile)]
         return set(waits(probe)) == before
 
-    def _is_kyuushu(self, player: PlayerState) -> bool:
-        kinds = sum(1 for tile in TERMINALS_AND_HONORS if player.hand.concealed[tile])
-        return kinds >= KYUUSHU_KINDS
-
     def _can_tsumo(self, seat: int) -> bool:
         player = self.players[seat]
         if not is_complete(player.hand):
@@ -421,8 +411,6 @@ class Round:
         match action.type:
             case ActionType.TSUMO:
                 self._finish_win([seat], is_tsumo=True)
-            case ActionType.KYUUSHU:
-                self._finish_abort("九種九牌")
             case ActionType.ANKAN:
                 self._do_ankan(seat, action.tile)
             case ActionType.KAKAN:
@@ -461,7 +449,7 @@ class Round:
 
         self._refresh_furiten(seat)
         self.is_rinshan = False
-        # 全員が1度打牌したら第1巡は終わり（九種九牌・ダブルリーチの条件）
+        # 全員が1度打牌したら第1巡は終わり（ダブルリーチの条件）
         if all(p.discards for p in self.players):
             self.first_go_around = False
 

@@ -43,10 +43,6 @@ class SekizuiAgent(StrongAgent):
         if self._menzen_and_close(hand):
             return super()._turn(game, seat, options)
 
-        kyuushu = _first(options, ActionType.KYUUSHU)
-        if kyuushu is not None:
-            return kyuushu  # 九種九牌の手は鳴ける形が少ない。流して次へ
-
         # 加槓は副露のままカンになる（嶺上牌・カンドラ。8索ならベンツ）。暗槓は脊髄が消えるのでしない。
         kakan = _first(options, ActionType.KAKAN)
         if kakan is not None:

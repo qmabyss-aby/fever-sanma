@@ -449,3 +449,18 @@ class TestCallOnKita:
             game.apply(next(a for a in decision.actions if a.type is ActionType.PASS))
         assert game.players[0].hand.kita == 1
         assert game.turn == 0
+
+
+class TestNoKyuushu:
+    """フィーバー三麻に九種九牌はない（Wiki に記載なし。ユーザー確認済み）。么九牌だらけでも流せない。"""
+
+    def test_terminal_heavy_first_draw_cannot_abort(self):
+        from fever_sanma.core.hand import Hand
+
+        game = Round(dealer=0, rng=random.Random(0))
+        game.players[0].hand = Hand.from_counts(t.counts_of("19m 19p 19s 1234567z 55p"))
+        game.players[0].drawn_tile = t.pin(5)
+        assert game.first_go_around and game.phase is Phase.DRAW
+        kinds = {a.type for a in game.decision().actions}
+        assert kinds <= {ActionType.DISCARD, ActionType.KITA, ActionType.RIICHI, ActionType.OPEN_RIICHI}
+        assert not hasattr(ActionType, "KYUUSHU")

@@ -61,7 +61,6 @@ BUTTON_ORDER = (
     ActionType.ANKAN,
     ActionType.KAKAN,
     ActionType.KITA,
-    ActionType.KYUUSHU,
     ActionType.PASS,
 )
 

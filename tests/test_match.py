@@ -47,10 +47,10 @@ class TestDealerContinuation:
         assert not match._dealer_keeps(draw_with([CHILD1]), DEALER, is_last=False)
 
     def test_abort_keeps_dealer(self):
-        # 途中流局（九種九牌・四槓散了）は親継続
+        # 途中流局（四槓散了）は親継続
         match = match_with([25000, 25000, 25000])
         assert match._dealer_keeps(
-            RoundResult(kind="abort", abort_reason="九種九牌"), DEALER, is_last=False
+            RoundResult(kind="abort", abort_reason="四槓散了"), DEALER, is_last=False
         )
 
 

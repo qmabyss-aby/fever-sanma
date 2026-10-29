@@ -131,6 +131,14 @@ class TestControls:
         assert results[-1] == "benz"
         assert any("隠しコマンド" in line for line in session.view()["log"])
 
+    def test_hidden_command_by_tap(self):
+        # スマホ向け: 画面の連続タップから直接呼ぶ。次の配牌に仕込まれる
+        session = WebSession(ai="random", rng=random.Random(0))
+        assert session.hidden_command("fever") == "fever"
+        assert session.hidden_command("nope") is None
+        assert session.match.hidden_requests[session.human] == ["fever"]
+        assert any("フィーバーモード" in line for line in session.view()["log"])
+
 
 class TestWinningHandInDialog:
     def test_round_result_dialog_shows_winning_hand(self):

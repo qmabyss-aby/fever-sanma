@@ -26,7 +26,6 @@ ACTION_LABELS = {
     ActionType.KAKAN: "加槓",
     ActionType.ANKAN: "暗槓",
     ActionType.KITA: "北抜き",
-    ActionType.KYUUSHU: "九種九牌",
     ActionType.PASS: "パス",
 }
 

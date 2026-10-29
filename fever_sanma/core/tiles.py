@@ -139,7 +139,7 @@ TERMINALS = (M1, M9, pin(1), pin(9), sou(1), sou(9))
 """老頭牌（一九牌）。萬子は1m/9mしかないので全ての萬子が老頭牌。"""
 
 TERMINALS_AND_HONORS = frozenset(TERMINALS + HONORS)
-"""么九牌。チャンタ・混老頭・国士無双・九種九牌・流し満貫の判定に使う。全13種。"""
+"""么九牌。チャンタ・混老頭・国士無双・流し満貫の判定に使う。全13種。"""
 
 SIMPLES = frozenset(i for i in range(NUM_KINDS) if i not in TERMINALS_AND_HONORS)
 """中張牌（タンヤオ牌）。2p〜8p と 2s〜8s の14種。"""
