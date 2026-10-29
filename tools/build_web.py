@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import shutil
 import sys
+import time
 import zipfile
 from pathlib import Path
 
@@ -23,6 +24,13 @@ def build(site: Path = SITE) -> Path:
     if site.exists():
         shutil.rmtree(site)
     shutil.copytree(ROOT / "web", site, ignore=shutil.ignore_patterns("README.md", "*.sql"))
+    # GitHub Pages はファイルを最大10分キャッシュさせるので、公開し直した直後に古い
+    # config.js などが読まれることがある。読み込む URL に版番号を付けて避ける。
+    index = site / "index.html"
+    index.write_text(
+        index.read_text(encoding="utf-8").replace("__BUILD__", str(int(time.time()))),
+        encoding="utf-8",
+    )
     with zipfile.ZipFile(site / "fever_sanma.zip", "w", zipfile.ZIP_DEFLATED) as archive:
         for path in sorted((ROOT / "fever_sanma").rglob("*.py")):
             if path.name in EXCLUDE:

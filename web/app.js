@@ -18,7 +18,7 @@ async function boot() {
     text.textContent = "Python を読み込み中…（初回は十数秒かかります）";
     pyodide = await loadPyodide();
     text.textContent = "ゲームを読み込み中…";
-    const response = await fetch("fever_sanma.zip", { cache: "no-cache" });
+    const response = await fetch("fever_sanma.zip", { cache: "no-cache" }) // 毎回サーバーに更新を確かめる;
     if (!response.ok) throw new Error(`fever_sanma.zip を取得できませんでした (${response.status})`);
     pyodide.unpackArchive(await response.arrayBuffer(), "zip", { extractDir: "/home/pyodide/app" });
     pyodide.runPython("import sys; sys.path.insert(0, '/home/pyodide/app')");
