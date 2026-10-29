@@ -3,7 +3,13 @@
 ローカルルール三人麻雀「フィーバー三麻」の対局プログラムです。
 ルールは [フィーバー三麻 Wiki](https://wiki3.jp/fever_sanma) に従います（詳細は [CLAUDE.md](CLAUDE.md)）。
 
-## 遊び方
+## ブラウザで遊ぶ
+
+https://qmabyss-aby.github.io/fever-sanma/ （インストール不要。初回の読み込みに十数秒かかります）
+
+仕組みとランキングの設定は [web/README.md](web/README.md) を参照。
+
+## 手元で遊ぶ
 
 Python 3.12 以上が必要です。
 

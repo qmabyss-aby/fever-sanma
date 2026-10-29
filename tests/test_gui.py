@@ -138,7 +138,9 @@ class TestRiichiAndKita:
         return False
 
     def test_riichi_button_then_tile(self, root):
-        for seed in range(15):
+        # 人間はツモ切りしかしないので立直の機会は少ない。seed 44 で初めて来る
+        # （向聴数の修正前は、雀頭のない形も立直できたので早く来ていた）
+        for seed in range(44, 60):
             app = make_app(root, seed)
             if self.find(root, app, lambda o: any(a.type is ActionType.RIICHI for a in o)):
                 riichi_tiles = {a.tile for a in app.pending.actions if a.type is ActionType.RIICHI}

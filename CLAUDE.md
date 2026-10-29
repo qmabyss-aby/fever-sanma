@@ -80,6 +80,9 @@ fever_sanma/
   ui/
     cui.py             # ターミナル表示
     gui.py             # tkinter の GUI（既定の起動画面）
+    web.py             # ブラウザ版の進行役（WebSession。JS からは JSON でやり取り）
+web/                 # ブラウザ版の画面（HTML/JS。Pyodide で fever_sanma を動かす）・ランキング
+tools/build_web.py   # web/ と fever_sanma.zip を _site/ に組み立てる（GitHub Pages 用）
 tests/               # pytest
 ```
 
@@ -421,6 +424,7 @@ CPU 4種類の総当たり（3人を選ぶ4通りの卓をそれぞれ N 半荘�
 | 流し満貫・オープンリーチ | ✅ |
 | ランダム打ち CPU・CUI 対局・全CPU検証 | ✅ 1,000半荘/3,064局を例外なく完走 |
 | GUI（tkinter） | ✅ `ui/gui.py`。既定の起動画面 |
+| ブラウザ版・ランキング | ✅ `ui/web.py` + `web/`。GitHub Pages（https://qmabyss-aby.github.io/fever-sanma/）。ランキングは Supabase に自己申告の成績を保存（身内向け・不正対策なし。設定は `web/README.md`） |
 | 強い CPU AI | ✅ `players/strong_ai.py`。ランダム打ち相手にトップ率98% |
 | 脊髄狙いの CPU AI | ✅ `players/sekizui_ai.py`。強いCPU 2人相手にほぼ互角 |
 | 高打点狙いの CPU AI | ✅ `players/value_ai.py`。「高い手」＝上がれば誰かを飛ばせる手。強いCPUとほぼ互角、フィーバー立直は約2.5倍 |

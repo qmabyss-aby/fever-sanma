@@ -176,8 +176,11 @@ def render_round_result(result: RoundResult) -> str:
     return "\n".join(lines)
 
 
+ENDED_BY_LABELS = {"tobi": "飛び", "east3": "東3局終了", "limit": "連荘の上限"}
+
+
 def render_match_result(result: MatchResult) -> str:
-    lines = [f"終局（{result.ended_by}）"]
+    lines = [f"終局（{ENDED_BY_LABELS.get(result.ended_by, result.ended_by)}）"]
     for rank, seat in enumerate(result.ranking, start=1):
         lines.append(
             f"  {rank}位 {SEAT_LABELS[seat]}  素点 {result.scores[seat]:>7,}  "
