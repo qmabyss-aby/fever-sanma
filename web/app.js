@@ -32,6 +32,7 @@ async function boot() {
   $("table").hidden = false;
   $("new-match").addEventListener("click", newMatch);
   document.addEventListener("keydown", onKey);
+  $("update").addEventListener("click", () => location.reload());
   if (window.Ranking && Ranking.enabled()) {
     $("show-ranking").hidden = false;
     $("show-ranking").addEventListener("click", () => Ranking.show());
@@ -40,11 +41,26 @@ async function boot() {
 }
 
 function newMatch() {
+  checkForUpdate();
   if (session) session.destroy();
   $("log").textContent = "";
   session = web.WebSession($("ai").value);
   refresh();
   schedule(1);
+}
+
+// 「もう一度」はページを読み込み直さないので、タブを開いたままだと公開し直した版に
+// 切り替わらない。対局を始めるたびにサーバーの版番号を確かめ、新しければ知らせる。
+async function checkForUpdate() {
+  if (!window.FEVER_BUILD || window.FEVER_BUILD.startsWith("__")) return;
+  try {
+    const response = await fetch("version.json", { cache: "no-store" });
+    if (!response.ok) return;
+    const { build } = await response.json();
+    $("update").hidden = String(build) === window.FEVER_BUILD;
+  } catch {
+    // 確かめられなくても遊ぶのには困らない
+  }
 }
 
 // --- 進行 -------------------------------------------------------------------

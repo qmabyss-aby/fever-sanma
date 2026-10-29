@@ -9,6 +9,7 @@ tkinter 版の GUI はブラウザでは動かないので入れない。
 
 from __future__ import annotations
 
+import json
 import shutil
 import sys
 import time
@@ -26,11 +27,13 @@ def build(site: Path = SITE) -> Path:
     shutil.copytree(ROOT / "web", site, ignore=shutil.ignore_patterns("README.md", "*.sql"))
     # GitHub Pages はファイルを最大10分キャッシュさせるので、公開し直した直後に古い
     # config.js などが読まれることがある。読み込む URL に版番号を付けて避ける。
+    # 開いたままのページが新しい版に気づけるよう、同じ版番号を version.json にも書く。
+    build_id = str(int(time.time()))
     index = site / "index.html"
     index.write_text(
-        index.read_text(encoding="utf-8").replace("__BUILD__", str(int(time.time()))),
-        encoding="utf-8",
+        index.read_text(encoding="utf-8").replace("__BUILD__", build_id), encoding="utf-8"
     )
+    (site / "version.json").write_text(json.dumps({"build": build_id}), encoding="utf-8")
     with zipfile.ZipFile(site / "fever_sanma.zip", "w", zipfile.ZIP_DEFLATED) as archive:
         for path in sorted((ROOT / "fever_sanma").rglob("*.py")):
             if path.name in EXCLUDE:

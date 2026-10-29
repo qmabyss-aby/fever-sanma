@@ -27,6 +27,7 @@
     </label>
     <button id="new-match" type="button">新しい対局</button>
     <button id="show-ranking" type="button" hidden>ランキング</button>
+    <button id="update" type="button" class="update" hidden>新しい版があります（再読み込み）</button>
   </header>
 
   <main id="table" hidden>
@@ -62,6 +63,7 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
+  <script>window.FEVER_BUILD = "__BUILD__";</script>
   <script src="config.js?v=__BUILD__"></script>
   <script src="ranking.js?v=__BUILD__"></script>
   <script src="app.js?v=__BUILD__"></script>

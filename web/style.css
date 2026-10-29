@@ -43,6 +43,7 @@ button, select {
   padding: 4px 10px;
 }
 button { cursor: pointer; font-weight: bold; }
+button.update { background: var(--accent); }
 button:disabled { cursor: default; opacity: 0.6; }
 
 main { max-width: 1100px; margin: 0 auto; padding: 8px 16px 24px; }
