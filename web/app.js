@@ -223,7 +223,7 @@ function renderDialog(view) {
   $("dialog-title").textContent = dialog.title;
   $("dialog-text").textContent = dialog.text;
   const extra = $("dialog-extra");
-  extra.replaceChildren();
+  extra.replaceChildren(...(dialog.hands || []).map(winningHandElement));
   if (view.state === "match_end" && view.result && window.Ranking && Ranking.enabled()) {
     extra.append(Ranking.submitForm(view.result));
   }
@@ -242,6 +242,24 @@ function renderDialog(view) {
   );
   overlay.hidden = false;
   overlay.querySelector("button")?.focus();
+}
+
+// 和了形を牌の絵で見せる（点数が妥当か確かめられるように）。和了牌は少し離して色を変える
+function winningHandElement(hand) {
+  const box = document.createElement("div");
+  box.className = "win-hand";
+  box.append(span(`${hand.label}の和了形（和了牌: ${faces[hand.win_tile].top}${faces[hand.win_tile].bottom} ${hand.how}）`));
+  const row = document.createElement("div");
+  row.className = "hand-row";
+  const concealed = document.createElement("div");
+  concealed.className = "concealed";
+  for (const tile of hand.concealed) concealed.append(tileElement(tile));
+  concealed.append(tileElement(hand.win_tile, "win-tile"));
+  row.append(concealed);
+  if (hand.kita) row.append(meldElement(`抜きドラ ×${hand.kita}`, Array(hand.kita).fill(23)));
+  for (const meld of hand.melds) row.append(meldElement(meld.label, meld.tiles));
+  box.append(row);
+  return box;
 }
 
 // --- 部品 -------------------------------------------------------------------

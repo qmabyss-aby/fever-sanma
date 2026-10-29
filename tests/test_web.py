@@ -130,3 +130,22 @@ class TestControls:
         results = [session.key(c) for c in "benz"]
         assert results[-1] == "benz"
         assert any("隠しコマンド" in line for line in session.view()["log"])
+
+
+class TestWinningHandInDialog:
+    def test_round_result_dialog_shows_winning_hand(self):
+        found = 0
+        for seed in range(5):
+            session = WebSession(ai="strong", rng=random.Random(seed))
+            for view in play(session, random.Random(seed + 50)):
+                dialog = view["dialog"]
+                if not dialog or dialog["title"] != "局の結果" or "和了" not in dialog["text"]:
+                    continue
+                assert dialog["hands"], dialog["text"]
+                for hand in dialog["hands"]:
+                    tiles = len(hand["concealed"]) + 1 + 3 * len(hand["melds"])
+                    assert tiles == 14, hand
+                    assert hand["how"] in ("ツモ", "ロン")
+                assert "手牌:" in dialog["text"]
+                found += 1
+        assert found

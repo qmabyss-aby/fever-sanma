@@ -292,8 +292,10 @@ class FeverSanmaApp:
         lines = [
             f"★ フィーバー和了 {index + 1}回目",
             f"{cui.SEAT_LABELS[seat]}  {how}  {tile_name(win.win_tile)}",
-            f"  {cui.format_value(win.value)}",
         ]
+        if win.hand is not None:
+            lines.extend(cui.format_winning_hand(win.hand, show_win_tile=False))
+        lines.append(f"  {cui.format_value(win.value)}")
         deltas = win.payments.deltas
         moves = "  ".join(
             f"{cui.SEAT_LABELS[s]} {deltas[s]:+,}" for s in sorted(deltas) if deltas[s]

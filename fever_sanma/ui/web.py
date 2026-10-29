@@ -19,7 +19,7 @@ import random
 from collections.abc import Callable, Sequence
 
 from ..core import hidden
-from ..core.game import Action, ActionType, Phase, Round
+from ..core.game import Action, ActionType, Phase, Round, WinningHand
 from ..core.hand import MeldType
 from ..core.match import Match, MatchResult
 from ..core.tiles import NUM_KINDS, PEI, number_of, suit_of, tile_name
@@ -167,7 +167,9 @@ class WebSession:
         self._fever_shown = index + 1
         text = self._fever_win_text(index)
         self.log(text)
-        self._open_dialog("フィーバー和了", text, [("続ける", self._continue_fever)])
+        win = self.game.fever_wins[index]
+        hands = [_hand_view(self.game.fever_seat, win.hand)] if win.hand is not None else []
+        self._open_dialog("フィーバー和了", text, [("続ける", self._continue_fever)], hands)
 
     def _continue_fever(self) -> None:
         self._close_dialog()
@@ -180,8 +182,10 @@ class WebSession:
         lines = [
             f"★ フィーバー和了 {index + 1}回目",
             f"{cui.SEAT_LABELS[game.fever_seat]}  {how}  {tile_name(win.win_tile)}",
-            f"  {cui.format_value(win.value)}",
         ]
+        if win.hand is not None:
+            lines.extend(cui.format_winning_hand(win.hand, show_win_tile=False))
+        lines.append(f"  {cui.format_value(win.value)}")
         deltas = win.payments.deltas
         lines.append("  " + "  ".join(
             f"{cui.SEAT_LABELS[s]} {deltas[s]:+,}" for s in sorted(deltas) if deltas[s]
@@ -199,7 +203,8 @@ class WebSession:
         lines = [cui.render_round_result(result), ""]
         for seat, player in enumerate(self.game.players):
             lines.append(f"{cui.SEAT_LABELS[seat]}  {player.score:,}点")
-        self._open_dialog("局の結果", "\n".join(lines), [("次へ", self._next_round)])
+        hands = [_hand_view(seat, hand) for seat, hand in result.hands.items()]
+        self._open_dialog("局の結果", "\n".join(lines), [("次へ", self._next_round)], hands)
 
     def _next_round(self) -> None:
         self._close_dialog()
@@ -259,8 +264,14 @@ class WebSession:
     def log(self, text: str) -> None:
         self._log.extend(text.split("\n"))
 
-    def _open_dialog(self, title: str, text: str, buttons) -> None:
-        self._dialog = {"title": title, "text": text, "buttons": [label for label, _ in buttons]}
+    def _open_dialog(self, title: str, text: str, buttons, hands: list[dict] | None = None) -> None:
+        """ポップアップを開く。hands は牌の絵で見せる和了形（_hand_view の形）。"""
+        self._dialog = {
+            "title": title,
+            "text": text,
+            "buttons": [label for label, _ in buttons],
+            "hands": hands or [],
+        }
         self._dialog_actions = [command for _, command in buttons]
 
     def _close_dialog(self) -> None:
@@ -430,6 +441,18 @@ class WebSession:
             "rank": result.ranking.index(self.human) + 1,
             "opponents": [AI_LABELS[kind] for kind in self.cpu_kinds.values()],
         }
+
+
+def _hand_view(seat: int, hand: WinningHand) -> dict:
+    """和了形を牌の絵で描くためのデータ。"""
+    return {
+        "label": cui.SEAT_LABELS[seat],
+        "concealed": list(hand.concealed),
+        "win_tile": hand.win_tile,
+        "how": "ツモ" if hand.is_tsumo else "ロン",
+        "melds": [{"label": MELD_LABELS[m.type], "tiles": list(m.tiles)} for m in hand.melds],
+        "kita": hand.kita,
+    }
 
 
 def faces_json() -> str:

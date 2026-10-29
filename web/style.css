@@ -160,6 +160,10 @@ main { max-width: 1100px; margin: 0 auto; padding: 8px 16px 24px; }
 }
 .dialog h2 { margin: 0 0 8px; font-size: 17px; }
 .dialog pre { white-space: pre-wrap; font-family: inherit; margin: 0 0 12px; }
+.win-hand { margin: 0 0 12px; font-size: 13px; }
+.win-hand .hand-row { margin-top: 4px; }
+.win-hand .tile { width: 26px; height: 36px; font-size: 13px; }
+.win-hand .tile.win-tile { margin-left: 8px; background: var(--drawn); }
 .dialog-buttons { display: flex; gap: 10px; justify-content: center; }
 .dialog-buttons button { padding: 6px 20px; }
 

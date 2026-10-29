@@ -131,6 +131,21 @@ class Decision:
 
 
 @dataclass(frozen=True, slots=True)
+class WinningHand:
+    """和了したときの手牌（結果の表示用）。
+
+    concealed は **和了牌を除いた** 手の内（昇順）。ツモでもロンでも同じ形にそろえるので、
+    「この手にこの牌で上がった」と読める。点数の妥当性を人が確かめられるようにするためのもの。
+    """
+
+    concealed: list[int]
+    win_tile: int
+    is_tsumo: bool
+    melds: list[Meld] = field(default_factory=list)
+    kita: int = 0
+
+
+@dataclass(frozen=True, slots=True)
 class FeverWin:
     """フィーバー中に成立した和了1件。
 
@@ -146,6 +161,7 @@ class FeverWin:
     discarder: int | None
     value: HandValue
     payments: scoring.Payments = field(default_factory=scoring.Payments)
+    hand: WinningHand | None = None
 
 
 @dataclass
@@ -164,6 +180,8 @@ class RoundResult:
     """フィーバー中に積み上がった和了の内訳。"""
     ura_indicators: list[int] = field(default_factory=list)
     """裏ドラ表示牌（カン裏を含む）。立直者が和了したときだけ入る。"""
+    hands: dict[int, WinningHand] = field(default_factory=dict)
+    """和了者ごとの和了形。フィーバーの局では最後の和了のときの手（和了牌は fever_wins に）。"""
 
 
 class Round:
@@ -845,7 +863,8 @@ class Round:
         ).merge(scoring.yakuman_bonus(value, seat, is_tsumo, discarder))
         self.riichi_sticks = 0
         self._apply_payments(payments)
-        self.fever_wins.append(FeverWin(win_tile, is_tsumo, discarder, value, payments))
+        hand = self._winning_hand(seat, win_tile, is_tsumo)
+        self.fever_wins.append(FeverWin(win_tile, is_tsumo, discarder, value, payments, hand))
 
     def _finish_fever(self) -> None:
         """フィーバー終了。積み上がった和了の合計を局の結果にする。"""
@@ -875,6 +894,7 @@ class Round:
             dealer_kept=self.dealer == seat,
             fever_wins=list(self.fever_wins),
             ura_indicators=self._revealed_ura([seat]),
+            hands={seat: self.fever_wins[-1].hand},
         )
         self.phase = Phase.FINISHED
 
@@ -929,9 +949,19 @@ class Round:
         )
         return evaluate(ctx)
 
+    def _winning_hand(self, seat: int, win_tile: int, is_tsumo: bool) -> WinningHand:
+        """和了形を表示用に写し取る。ツモなら手の内から和了牌を1枚抜いておく。"""
+        hand = self.players[seat].hand
+        counts = list(hand.concealed)
+        if is_tsumo and counts[win_tile]:
+            counts[win_tile] -= 1
+        concealed = [tile for tile in range(NUM_KINDS) for _ in range(counts[tile])]
+        return WinningHand(concealed, win_tile, is_tsumo, list(hand.melds), hand.kita)
+
     def _finish_win(self, winners: list[int], is_tsumo: bool) -> None:
         payments = scoring.Payments()
         values: dict[int, HandValue] = {}
+        hands: dict[int, WinningHand] = {}
         sticks = self.riichi_sticks
 
         for index, seat in enumerate(sorted(winners, key=lambda s: (s - (self.last_discarder or 0)) % NUM_PLAYERS)):
@@ -943,6 +973,7 @@ class Round:
                 extra_tile=None if is_tsumo else self.last_discard,
             )
             values[seat] = value
+            hands[seat] = self._winning_hand(seat, win_tile, is_tsumo)
             discarder = None if is_tsumo else self.last_discarder
             # 大明槓の責任払い: 嶺上開花で和了されたらカン牌を出した者が全額払う
             if is_tsumo and self.is_rinshan and self.minkan_responsible is not None:
@@ -980,6 +1011,7 @@ class Round:
             values=values,
             dealer_kept=self.dealer in winners,
             ura_indicators=self._revealed_ura(winners),
+            hands=hands,
         )
         self.phase = Phase.FINISHED
 

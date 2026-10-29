@@ -516,3 +516,27 @@ class TestFeverWinsAreSettledOneByOne:
         assert first.payments.pot.get(game.fever_seat) == 1000
         assert all(not w.payments.pot.get(game.fever_seat) for w in game.result.fever_wins[1:])
         assert game.riichi_sticks == 0
+
+
+class TestFeverWinningHand:
+    """フィーバーの和了ごとに和了形が残る（ポップアップで手牌を見せるため）。"""
+
+    def test_each_win_keeps_the_fixed_hand(self):
+        from fever_sanma.core.hand import Hand, is_complete
+
+        wall = rigged_wall(FEVER_OK, JUNK_1, JUNK_2, draws="9m", shuffle=MIXED_WINS)
+        game = run_to_fever(wall)
+        TestFeverWinsAreSettledOneByOne().play_out(game)
+        result = game.result
+        assert len(result.fever_wins) >= 2
+        concealed = {tuple(win.hand.concealed) for win in result.fever_wins}
+        assert len(concealed) == 1  # 立直後は手が変わらないので、どの和了でも同じ13枚
+        assert len(next(iter(concealed))) == 13
+        for win in result.fever_wins:
+            counts = t.counts_of("")
+            for tile in win.hand.concealed:
+                counts[tile] += 1
+            counts[win.win_tile] += 1
+            assert is_complete(Hand.from_counts(counts))
+            assert win.hand.is_tsumo == win.is_tsumo
+        assert result.hands[result.winners[0]] == result.fever_wins[-1].hand

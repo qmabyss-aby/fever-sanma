@@ -7,9 +7,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from ..core.game import Action, ActionType, Phase, Round, RoundResult
+from ..core.game import Action, ActionType, Phase, Round, RoundResult, WinningHand
 from ..core.match import MatchResult
-from ..core.tiles import PEI, format_ordered, format_tiles, tile_name
+from ..core.tiles import PEI, format_ordered, format_tiles, number_of, suit_of, tile_name
 from ..core.yaku import RIICHI_EXTRA_NAMES, HandValue, is_dora_yaku
 
 SEAT_LABELS = ("東家", "南家", "西家")
@@ -144,12 +144,51 @@ def format_value(value: HandValue) -> str:
     return f"{yaku}  → {value.han}翻{value.fu}符"
 
 
+SUIT_CHARS = {"m": "萬", "p": "筒", "s": "索"}
+
+
+def format_tiles_ja(tiles: list[int]) -> str:
+    """手牌を日本語の並べ方で書く（"111萬 456777筒 34索 北北"）。昇順に並べ替える。"""
+    groups: list[str] = []
+    ordered = sorted(tiles)
+    for suit, char in SUIT_CHARS.items():
+        numbers = "".join(str(number_of(t)) for t in ordered if suit_of(t) == suit)
+        if numbers:
+            groups.append(numbers + char)
+    honors = "".join(tile_name(t) for t in ordered if suit_of(t) == "z")
+    if honors:
+        groups.append(honors)
+    return " ".join(groups)
+
+
+def format_winning_hand(hand: WinningHand, show_win_tile: bool = True) -> list[str]:
+    """和了形の表示（手牌・和了牌・副露・抜きドラ）。点数が妥当か人が確かめるためのもの。"""
+    line = f"  手牌: {format_tiles_ja(hand.concealed)}"
+    if show_win_tile:
+        line += f"  和了牌: {tile_name(hand.win_tile)}（{'ツモ' if hand.is_tsumo else 'ロン'}）"
+    lines = [line]
+    extras = [
+        f"[{ACTION_LABELS[_meld_action(meld)]} {format_tiles_ja(meld.tiles)}]"
+        for meld in hand.melds
+    ]
+    if hand.kita:
+        extras.append(f"抜きドラ 北×{hand.kita}")
+    if extras:
+        lines.append("  副露: " + " ".join(extras))
+    return lines
+
+
 def render_round_result(result: RoundResult) -> str:
     lines: list[str] = []
     match result.kind:
         case "win":
             for seat in result.winners:
                 lines.append(f"{SEAT_LABELS[seat]} 和了")
+                # フィーバーの局は和了牌が毎回違うので、手牌だけ出して和了牌は内訳一覧に任せる
+                if seat in result.hands:
+                    lines.extend(
+                        format_winning_hand(result.hands[seat], show_win_tile=not result.fever_wins)
+                    )
                 # フィーバーの局は和了が何回もあるので、下の内訳一覧に任せる
                 if seat in result.values and not result.fever_wins:
                     lines.append(f"  {format_value(result.values[seat])}")

@@ -374,3 +374,31 @@ class TestRiichiNeedsRealTenpai:
         # 9p を切れば 123p 456p 789s 24s 66s のテンパイ（3索待ち）
         game = self._round_with("123p 456p 9p 789s 24s 66s", t.pin(9))
         assert self.riichi_tiles(game) == {t.pin(9)}
+
+
+class TestWinningHandIsRecorded:
+    """局の結果に和了形が残り、それが本当に和了形になっていること（表示して点数を確かめるため）。"""
+
+    def test_hand_plus_win_tile_is_complete(self):
+        from fever_sanma.core.hand import Hand, is_complete
+        from fever_sanma.ui import cui
+
+        seen = {"tsumo": 0, "ron": 0, "fever": 0}
+        for seed in range(400):
+            game = play_round(seed)
+            result = game.result
+            if result.kind != "win" or not result.hands:
+                continue
+            for seat in result.winners:
+                hand = result.hands[seat]
+                counts = t.counts_of("")
+                for tile in hand.concealed:
+                    counts[tile] += 1
+                counts[hand.win_tile] += 1
+                assert is_complete(Hand.from_counts(counts, list(hand.melds), hand.kita))
+                seen["tsumo" if hand.is_tsumo else "ron"] += 1
+            for win in result.fever_wins:
+                seen["fever"] += 1
+                assert win.hand.win_tile == win.win_tile
+            assert "手牌:" in cui.render_round_result(result)
+        assert seen["tsumo"] and seen["ron"], seen
