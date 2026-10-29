@@ -22,8 +22,10 @@ window.Ranking = (() => {
     });
     const text = await response.text();
     if (!response.ok) throw new Error(`${response.status} ${text}`);
-    // 登録（return=minimal）は 201 で本文が空。空なら JSON として読まない
-    return text ? JSON.parse(text) : null;
+    // 登録（POST）は成否をステータスだけで判断し、本文は読まない。return=minimal の本文は
+    // 空のはずだが、環境によっては空白などが混ざって JSON として読めないことがあった。
+    if ((options.method || "GET") !== "GET") return null;
+    return JSON.parse(text);
   }
 
   function savedName() {
