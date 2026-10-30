@@ -129,15 +129,16 @@ class TestFolding:
 
 class TestCallsAndKans:
     def test_no_call_unless_it_makes_tenpai(self):
-        # 役牌のポンでも、テンパイにならないなら鳴かない（強いCPUは鳴く）
+        # 2翻の当てがある役牌のポンでも、テンパイにならないなら鳴かない（強いCPUは鳴く）
         game = new_game()
-        options = react(game, OPP, "55z 123p 456p 78s 19m 3z", t.HAKU)
+        options = react(game, OPP, "55z 77z 123p 46p 19m 8s 3z", t.HAKU)
         assert strong(game, OPP, options).type is ActionType.PON
         assert defensive(game, OPP, options).type is ActionType.PASS
 
     def test_calls_when_it_makes_tenpai(self):
         game = new_game()
-        options = react(game, OPP, "55z 123p 456p 789s 4s 3z", t.HAKU)
+        # 白をポンして 中と8索のシャンポン待ち（中で上がれば白・中の2翻）
+        options = react(game, OPP, "55z 77z 123p 456p 88s 1m", t.HAKU)
         assert defensive(game, OPP, options).type is ActionType.PON
 
     def test_no_kan(self):

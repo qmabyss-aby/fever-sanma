@@ -147,10 +147,25 @@ def react(game, seat, notation, tile, discarder=0, melds=()):
 
 
 class TestCalls:
-    def test_pons_yakuhai(self):
+    def test_pons_yakuhai_with_a_second_han(self):
+        # 白をポンしても中の対子があるので、2翻目の当てがある
         game = new_game()
-        action, _ = react(game, OPP, "55z 123p 456p 78s 19m 3z", t.HAKU)
+        action, _ = react(game, OPP, "55z 77z 123p 456p 78s 19m", t.HAKU)
         assert action.type is ActionType.PON
+
+    def test_skips_a_lone_yakuhai_pon(self):
+        # 役牌1つだけでは鳴いても1翻。二翻縛りで上がれないので門前を守る
+        game = new_game()
+        action, options = react(game, OPP, "55z 123p 456p 78s 19m 3z", t.HAKU)
+        assert any(a.type is ActionType.PON for a in options)
+        assert action.type is ActionType.PASS
+
+    def test_does_not_call_just_because_the_hand_is_far(self):
+        # 手が遠くても脊髄狙いの鳴きは入れない（牌譜の分析で大きく負けていた）
+        game = new_game()
+        action, options = react(game, OPP, "159p 159s 19m 2z 3z 4z 46s", t.sou(5))
+        assert any(a.type is not ActionType.PASS for a in options)
+        assert action.type is ActionType.PASS
 
     def test_stays_menzen_when_close(self):
         # 1向聴の門前手は役牌以外を鳴かず、立直を目指す
@@ -160,7 +175,7 @@ class TestCalls:
         assert action.type is ActionType.PASS
 
     def test_keeps_calling_once_open(self):
-        # 一度鳴いたら脊髄（4副露の裸単騎で13翻）を目指して鳴き進める
+        # 一度鳴いたら、手が進む鳴きは続ける
         game = new_game()
         melds = [Meld(MeldType.PON, t.HAKU, called_from=2, called_tile=t.HAKU)]
         action, _ = react(game, OPP, "123p 46s 89s 19m 3z 4z", t.sou(5), melds=melds)

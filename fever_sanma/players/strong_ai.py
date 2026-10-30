@@ -10,8 +10,11 @@
 - 二翻縛り: 通常の立直は「立直＋ロン」だけだと1翻で上がれないことが多い。
   ロンで上がれない待ちなら **オープン立直**（他家のロンなら13翻）を選ぶ。
   ツモなら立直＋門前清自摸和で2翻になるので、立直そのものは常に上がりがある。
-- 鳴き: 一度鳴いたら **脊髄**（4副露の裸単騎で13翻）を目指して鳴き進める。
-  門前のうちは、手が遠い・役牌のポン・混一色／対々和寄り、のときだけ最初に鳴く。
+- 鳴き: **基本は鳴かない**。二翻縛りでは鳴くと立直（＋門前清自摸和）を失い、役が足りずに
+  上がれない手になりやすい。牌譜の分析では、手が遠いときに脊髄狙いで鳴き始めても4副露まで
+  届かず、鳴いた局の和了率は1割に満たなかった（`tools/paifu.py`）。
+  鳴くのは「役牌のポンで、もう1翻の当てがある」ときだけ（連風牌、2つ目の役牌の対子、
+  混一色寄り）。一度鳴いたら、手が進む鳴きは続ける。
 - 守備: 立直者がいて自分の手が遠ければベタオリ（現物 → 筋 → 見えている字牌）。
   自分か立直者が割れ目なら失点が3倍になるので、1向聴でもオリる。
   オープン立直者の待ちは見えているので、その牌は絶対に切らない（放銃は13翻）。
@@ -50,8 +53,8 @@ LATE_FOLD_REMAINING = 15
 MIN_RIICHI_REMAINING = 4
 """山がこれより少ないと立直しない（ツモ番がほぼ無いので1,000点を払う意味が薄い）。"""
 
-FAR_SHANTEN = 3
-"""門前でこれ以上遠ければ、最初の鳴きを入れて脊髄を狙う。"""
+HONITSU_TILES = 11
+"""字牌と1色の数牌でこれ以上あれば混一色寄り（鳴いても役牌と合わせて2翻になる）。"""
 
 NEVER = 10_000
 """オープン立直者の待ち牌など、絶対に切らない牌の危険度。"""
@@ -238,28 +241,28 @@ class StrongAgent:
     def _worth_opening(
         self, game: Round, seat: int, action: Action, tile: int, before: int
     ) -> bool:
-        """鳴いても上がりの見込み（役）が残るか。"""
+        """門前を崩してまで鳴く価値があるか（鳴いても二翻縛りを満たす見込みがあるか）。"""
         player = game.players[seat]
         hand = player.hand
         if hand.open_meld_count:
-            return True  # すでに鳴いている → 脊髄（4副露の裸単騎で13翻）まで鳴き進める
-        if action.type is ActionType.PON and yakuhai_han(tile, player.seat_wind):
-            return True
-        if before >= FAR_SHANTEN:
-            return True  # 門前では遠すぎる。鳴いて脊髄を狙うほうが速い
+            return True  # もう門前ではない。手が進む鳴きは続ける
+        wind = player.seat_wind
+        han = yakuhai_han(tile, wind)
+        if action.type is not ActionType.PON or not han:
+            return False  # 役牌のポン以外で門前は崩さない
+        if han >= 2:
+            return True  # 親の東（連風牌）はそれだけで2翻
+        if any(
+            t != tile and hand.concealed[t] >= 2 and yakuhai_han(t, wind) for t in range(NUM_KINDS)
+        ):
+            return True  # 2つ目の役牌の対子がある
         tiles = [t for t in range(NUM_KINDS) for _ in range(hand.concealed[t])]
         honors = sum(1 for t in tiles if is_honor(t))
         by_suit: dict[str, int] = {}
         for t in tiles:
             if not is_honor(t):
                 by_suit[suit_of(t)] = by_suit.get(suit_of(t), 0) + 1
-        if honors + max(by_suit.values(), default=0) >= 10:
-            return True  # 混一色・清一色に寄っている
-        if action.type is ActionType.PON:
-            groups = sum(1 for t in range(NUM_KINDS) if hand.concealed[t] >= 2)
-            if groups >= 4:
-                return True  # 対々和に寄っている
-        return False
+        return honors + max(by_suit.values(), default=0) >= HONITSU_TILES  # 混一色寄り
 
     # --- 押し引き ----------------------------------------------------------
 
