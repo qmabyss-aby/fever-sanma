@@ -386,6 +386,16 @@ CPU 4種類の総当たり（3人を選ぶ4通りの卓をそれぞれ N 半荘�
 .venv/Scripts/python.exe -m fever_sanma --league 400 --seed 2026
 ```
 
+CPU の牌譜を記録して、どこで点を得て・失っているかを集計する（総当たり4卓を卓ごとに N 半荘。`paifu/` は git に入れない）:
+
+```bash
+.venv/Scripts/python.exe tools/paifu.py record 3000 --seed 2026 --out paifu/league.jsonl.gz
+```
+
+```bash
+.venv/Scripts/python.exe tools/paifu.py analyze paifu/league.jsonl.gz
+```
+
 全CPUで通し検証（例外・デッドロック・収支ずれの検出。`--ai random` でランダム打ち同士）:
 
 ```bash
