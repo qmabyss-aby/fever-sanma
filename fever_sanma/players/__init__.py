@@ -4,6 +4,7 @@ import random
 
 from .base import Agent
 from .defensive_ai import DefensiveAgent
+from .normal_ai import NormalAgent
 from .random_ai import RandomAgent
 from .sekizui_ai import SekizuiAgent
 from .strong_ai import StrongAgent
@@ -13,6 +14,7 @@ __all__ = [
     "Agent",
     "RandomAgent",
     "StrongAgent",
+    "NormalAgent",
     "SekizuiAgent",
     "ValueAgent",
     "DefensiveAgent",
@@ -26,11 +28,12 @@ __all__ = [
     "PICKABLE_KINDS",
 ]
 
-AI_KINDS = ("strong", "sekizui", "value", "defense", "random")
+AI_KINDS = ("strong", "normal", "sekizui", "value", "defense", "random")
 """選べる CPU の種類。先頭が既定。"""
 
 AI_LABELS = {
-    "strong": "強いCPU",
+    "strong": "最強CPU",
+    "normal": "普通CPU",
     "sekizui": "脊髄狙い",
     "value": "高打点狙い",
     "defense": "守備型",
@@ -42,6 +45,8 @@ def make_cpu(kind: str = "strong", rng: random.Random | None = None) -> Agent:
     """CPU の打ち手を作る。"""
     if kind == "strong":
         return StrongAgent(rng)
+    if kind == "normal":
+        return NormalAgent(rng)
     if kind == "sekizui":
         return SekizuiAgent(rng)
     if kind == "value":
@@ -56,7 +61,7 @@ def make_cpu(kind: str = "strong", rng: random.Random | None = None) -> Agent:
 RANDOM_PICK = "any"
 """「この席の CPU はランダムに選ぶ」という指定。"""
 
-PICKABLE_KINDS = ("strong", "sekizui", "value", "defense")
+PICKABLE_KINDS = ("strong", "normal", "sekizui", "value", "defense")
 """ランダムに選ぶ対象。弱いランダム打ちは入れない。"""
 
 

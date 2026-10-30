@@ -73,7 +73,7 @@ def main(argv: list[str] | None = None) -> int:
         "--league",
         type=int,
         metavar="N",
-        help="--ai の CPU（既定は strong,sekizui,value,defense）から3人を選ぶ全組み合わせを、"
+        help="--ai の CPU（既定は strong,normal,sekizui,value,defense）から3人を選ぶ全組み合わせを、"
         "それぞれ N 半荘ずつ総当たりで対戦させる",
     )
     parser.add_argument(
@@ -84,7 +84,7 @@ def main(argv: list[str] | None = None) -> int:
     rng = random.Random(args.seed)
     try:
         if args.league:
-            default = "strong,sekizui,value,defense"
+            default = "strong,normal,sekizui,value,defense"
         elif args.compare:
             default = "strong,random,random"
         else:

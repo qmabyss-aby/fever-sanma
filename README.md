@@ -22,7 +22,7 @@ python -m fever_sanma --cui      # ターミナルで対局
 python -m fever_sanma --ai any   # CPU 2人をランダムに選ぶ
 ```
 
-CPU の種類（`--ai`）: `strong`（強いCPU）/ `sekizui`（脊髄狙い）/ `value`（高打点狙い）/ `defense`（守備型）/ `random`
+CPU の種類（`--ai`）: `strong`（最強CPU）/ `normal`（普通CPU）/ `sekizui`（脊髄狙い）/ `value`（高打点狙い）/ `defense`（守備型）/ `random`
 
 ## CPU の比較
 

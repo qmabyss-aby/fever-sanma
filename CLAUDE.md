@@ -28,7 +28,7 @@
 |---|---|
 | 実装形態 | **CUI 優先**。core を固めてから UI を載せる（GUI 化は後日） |
 | 対戦形態 | **全CPU で検証 → 人間参加**。`--simulate` で全CPU、引数なしで人間1人vsCPU2人 |
-| CPU AI | **強いCPU（`strong`）が既定**。ほかに脊髄狙い（`sekizui`）・高打点狙い（`value`）・守備型（`defense`）・ランダム打ち（`random`）。`--ai` で席ごとに混ぜられる |
+| CPU AI | **最強CPU（`strong`）が既定**。ほかに普通CPU（`normal`。改良前の強いCPU）・脊髄狙い（`sekizui`）・高打点狙い（`value`）・守備型（`defense`）・ランダム打ち（`random`）。`--ai` で席ごとに混ぜられる |
 | Python | **3.12**（`.venv` を使う） |
 | 裏ドラ | **あり**。場にカンがある場合は **カン裏も増える** |
 | カンドラ | **あり**。暗槓は **即めくり**、明槓（大明槓・加槓）は **打牌後めくり** |
@@ -75,7 +75,7 @@ fever_sanma/
     game.py            # 1局の状態機械（フィーバーモード含む）
     match.py           # 東風戦（局をまたぐ処理・連荘・終局判定）
   players/           # 打ち手インターフェース
-    base.py  random_ai.py  strong_ai.py  sekizui_ai.py  value_ai.py  defensive_ai.py  human_cui.py
+    base.py  random_ai.py  strong_ai.py  normal_ai.py  sekizui_ai.py  value_ai.py  defensive_ai.py  human_cui.py
   ui/
     cui.py             # ターミナル表示
     gui.py             # tkinter の GUI（既定の起動画面）
@@ -368,7 +368,7 @@ py -3.12 -m venv .venv
 .venv/Scripts/python.exe -m fever_sanma --ai strong,sekizui
 ```
 
-対戦相手を4種類（strong / sekizui / value / defense）からランダムに2人選ぶ（東風戦ごとに選び直す）:
+対戦相手を5種類（strong / normal / sekizui / value / defense）からランダムに2人選ぶ（東風戦ごとに選び直す）:
 
 ```bash
 .venv/Scripts/python.exe -m fever_sanma --ai any
@@ -435,10 +435,11 @@ CPU の牌譜を記録して、どこで点を得て・失っているかを集�
 | ランダム打ち CPU・CUI 対局・全CPU検証 | ✅ 1,000半荘/3,064局を例外なく完走 |
 | GUI（tkinter） | ✅ `ui/gui.py`。既定の起動画面 |
 | ブラウザ版・ランキング | ✅ `ui/web.py` + `web/`。GitHub Pages（https://qmabyss-aby.github.io/fever-sanma/）。ランキングは Supabase に自己申告の成績を保存（身内向け・不正対策なし。設定は `web/README.md`） |
-| 強い CPU AI | ✅ `players/strong_ai.py`。ランダム打ち相手にトップ率98%。2026-10 の改良（鳴きを「役牌ポンで2翻の当てがあるときだけ」に絞った）で、総当たり8,000半荘で平均最終得点 +22,259・トップ率49.8%の1位（2位の高打点狙いに直接対決60%） |
+| 最強 CPU AI | ✅ `players/strong_ai.py`（`strong`）。ランダム打ち相手にトップ率98%。2026-10 の改良（鳴きを「役牌ポンで2翻の当てがあるときだけ」に絞った）で、総当たり8,000半荘で平均最終得点 +22,259・トップ率49.8%の1位（2位の高打点狙いに直接対決60%） |
+| 普通 CPU AI | ✅ `players/normal_ai.py`（`normal`）。改良前の強いCPUをそのまま残したもの。最強CPUとの違いは最初の鳴きの基準だけ（手が遠ければ鳴いて脊髄を狙い、役牌は1つでもポン） |
 | 脊髄狙いの CPU AI | ✅ `players/sekizui_ai.py`。総当たりでは最下位（鳴きが多いぶん二翻縛りで上がりにくい） |
-| 高打点狙いの CPU AI | ✅ `players/value_ai.py`。「高い手」＝上がれば誰かを飛ばせる手。強いCPUとほぼ互角、フィーバー立直は約2.5倍 |
-| 守備型の CPU AI | ✅ `players/defensive_ai.py`。放銃は最少（強いCPUの約6割）だが、失点の大半がツモられなので成績は強いCPUに劣る |
+| 高打点狙いの CPU AI | ✅ `players/value_ai.py`。「高い手」＝上がれば誰かを飛ばせる手。普通CPUとほぼ互角、フィーバー立直は約2.5倍 |
+| 守備型の CPU AI | ✅ `players/defensive_ai.py`。放銃は最少（普通CPUの約6割）だが、失点の大半がツモられなので成績は普通CPUに劣る |
 
 ### 次にやるなら
 

@@ -11,8 +11,8 @@ from fever_sanma.players import PICKABLE_KINDS, RANDOM_PICK, parse_ai_kinds, res
 def test_league_covers_every_table(capsys):
     assert main(["--league", "1", "--seed", "0"]) == 0
     out = capsys.readouterr().out
-    assert "4卓 × 1半荘 = 4半荘" in out  # 4種類から3人を選ぶ組み合わせは4通り
-    for label in ("強いCPU", "脊髄狙い", "高打点狙い", "守備型"):
+    assert "10卓 × 1半荘 = 10半荘" in out  # 5種類から3人を選ぶ組み合わせは10通り
+    for label in ("最強CPU", "普通CPU", "脊髄狙い", "高打点狙い", "守備型"):
         assert label in out
     assert "直接対決" in out
     assert "1半荘の最高得点" in out
