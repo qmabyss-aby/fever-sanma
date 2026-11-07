@@ -101,7 +101,9 @@ class PlayerState:
     ippatsu: bool = False
     riichi_discard_index: int | None = None
     furiten: bool = False
-    """永続フリテン。自分の河に待ち牌があるか、リーチ後に見逃した。"""
+    """フリテン。自分の河に今の待ち牌があるか、リーチ後に見逃した。打牌のたびに見直す。"""
+    riichi_furiten: bool = False
+    """リーチ後に見逃した。待ちが変わらないので局が終わるまで解消しない。"""
     temporary_furiten: bool = False
     """同巡内フリテン。次の自分のツモで解消する。"""
     discards_were_called: bool = False
@@ -635,7 +637,7 @@ class Round:
             player = self.players[seat]
             player.temporary_furiten = True
             if player.riichi:
-                player.furiten = True
+                player.riichi_furiten = player.furiten = True
         self._skip_empty_reactions()
 
     def _resolve_reactions(self) -> None:
@@ -1077,8 +1079,8 @@ class Round:
         player = self.players[seat]
         player.temporary_furiten = False
         own_waits = set(waits(_hand_without_drawn(player)))
-        if own_waits & set(player.discards):
-            player.furiten = True
+        # 河のフリテンは今の待ちで決まる。手変わりで待ちから外れれば解消する
+        player.furiten = player.riichi_furiten or bool(own_waits & set(player.discards))
 
     @property
     def scores(self) -> list[int]:

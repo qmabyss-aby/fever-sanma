@@ -464,3 +464,38 @@ class TestNoKyuushu:
         kinds = {a.type for a in game.decision().actions}
         assert kinds <= {ActionType.DISCARD, ActionType.KITA, ActionType.RIICHI, ActionType.OPEN_RIICHI}
         assert not hasattr(ActionType, "KYUUSHU")
+
+
+class TestFuriten:
+    """河のフリテンは今の待ちで決まる。手変わりで待ちから外れれば解消する。"""
+
+    def _player(self, notation, discards):
+        from fever_sanma.core.hand import Hand
+
+        game = Round(dealer=0, rng=random.Random(0))
+        player = game.players[0]
+        player.hand = Hand.from_counts(t.counts_of(notation))
+        player.drawn_tile = None
+        player.discards = list(discards)
+        return game, player
+
+    def test_wait_in_own_discards_is_furiten(self):
+        game, player = self._player("123p 456p 789p 23s 55s", [t.sou(1)])
+        game._refresh_furiten(0)
+        assert player.furiten
+
+    def test_changing_the_wait_clears_furiten(self):
+        # 1-4索待ちで1索を切っていた → 34索に変えて2-5索待ちになればロンできる
+        game, player = self._player("123p 456p 789p 23s 55s", [t.sou(1)])
+        game._refresh_furiten(0)
+        player.hand.remove(t.sou(2))
+        player.hand.add(t.sou(4))
+        game._refresh_furiten(0)
+        assert not player.furiten
+        assert game._can_ron(0, t.sou(2))
+
+    def test_missed_ron_in_riichi_stays(self):
+        game, player = self._player("123p 456p 789p 34s 55s", [])
+        player.riichi = player.riichi_furiten = player.furiten = True
+        game._refresh_furiten(0)
+        assert player.furiten
